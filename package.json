@@ -6,11 +6,11 @@
   ],
   "scripts": {
     "predev": "node scripts/check-port.js 3000",
-    "dev": "npm --workspace apps/web run dev",
-    "dev:web": "npm --workspace apps/web run dev",
-    "build": "npm --workspace apps/web run build",
-    "start": "npm --workspace apps/web run start",
-    "lint": "npm --workspace apps/web run lint"
+    "dev": "cd apps/web && npm run dev",
+    "dev:web": "cd apps/web && npm run dev",
+    "build": "cd apps/web && npm run build",
+    "start": "cd apps/web && npm run start",
+    "lint": "cd apps/web && npm run lint"
   },
   "engines": {
     "node": ">=18.18.0"
