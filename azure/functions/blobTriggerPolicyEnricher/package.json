@@ -1,0 +1,13 @@
+{
+  "name": "blob-trigger-policy-enricher",
+  "version": "1.0.0",
+  "description": "Azure Function: BlobCreated -> policy enricher (silver/gold/audit)",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "node -e \"const fs=require('fs'); ['index.js','policyEngine.js','types.js'].forEach(f=>{try{fs.unlinkSync(f);}catch(e){}})\""
+  },
+  "devDependencies": {
+    "typescript": "~5.3.0"
+  }
+}

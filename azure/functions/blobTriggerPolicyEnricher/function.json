@@ -1,0 +1,33 @@
+{
+  "bindings": [
+    {
+      "type": "blobTrigger",
+      "name": "triggerBlob",
+      "direction": "in",
+      "path": "raw/claims/{claimId}/claim.json",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "type": "blob",
+      "name": "silverBlob",
+      "direction": "out",
+      "path": "silver/claims/{claimId}/claim_enriched.json",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "type": "blob",
+      "name": "goldBlob",
+      "direction": "out",
+      "path": "gold/claims_current/{claimId}.json",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "type": "blob",
+      "name": "auditBlob",
+      "direction": "out",
+      "path": "audit/claims/{claimId}.json",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "scriptFile": "index.js"
+}

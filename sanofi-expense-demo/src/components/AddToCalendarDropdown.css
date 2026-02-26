@@ -1,0 +1,60 @@
+.add-to-calendar {
+  position: relative;
+}
+
+.add-to-calendar-btn {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  text-align: left;
+  color: #5b21b6;
+  background: rgba(139, 92, 250, 0.1);
+  border: 1px solid rgba(139, 92, 250, 0.3);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.add-to-calendar-btn:hover {
+  background: rgba(139, 92, 250, 0.15);
+}
+
+.add-to-calendar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+
+.add-to-calendar-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.25rem;
+  padding: 0.25rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.add-to-calendar-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  text-align: left;
+  color: #334155;
+  background: none;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.add-to-calendar-item:hover {
+  background: rgba(139, 92, 250, 0.1);
+  color: #5b21b6;
+}
