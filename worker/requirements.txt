@@ -1,0 +1,5 @@
+psycopg[binary]
+snowflake-connector-python
+python-dotenv
+# For keypair auth (optional if using SNOWFLAKE_PASSWORD)
+cryptography

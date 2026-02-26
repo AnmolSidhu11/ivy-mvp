@@ -1,0 +1,19 @@
+{
+  "name": "sanofi-rep-assistant-mvp",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "predev": "node scripts/check-port.js 3000",
+    "dev": "npm --workspace apps/web run dev",
+    "dev:web": "npm --workspace apps/web run dev",
+    "build": "npm --workspace apps/web run build",
+    "start": "npm --workspace apps/web run start",
+    "lint": "npm --workspace apps/web run lint"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
+
