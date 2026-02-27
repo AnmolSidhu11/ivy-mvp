@@ -60,15 +60,11 @@ export default function NewVisitPage() {
   const isReview = step === "review";
 
   useEffect(() => {
-    if (!visit) return;
-    setProductsInput(visit.products.join(", "));
-  }, [visit]);
-
-  useEffect(() => {
     if (!isProcessing) return;
     const timer = setTimeout(() => {
       const nextVisit = createInitialVisit();
       setVisit(nextVisit);
+      setProductsInput(nextVisit.products.join(", "));
       setStep("review");
       toast.success("Processing complete");
     }, 1500);

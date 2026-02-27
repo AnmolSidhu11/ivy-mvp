@@ -117,7 +117,6 @@ export function CaptureCard({
         setRecordingSeconds((s) => s + 1);
       }, 1000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not access microphone.";
       setRecordError("Microphone access denied or unavailable. Use Upload audio instead.");
       toast.error("Microphone access denied");
       console.warn("getUserMedia error:", err);

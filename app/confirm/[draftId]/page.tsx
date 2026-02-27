@@ -15,7 +15,13 @@ import {
   isSafetyComplete,
 } from "@/lib/validators";
 import { detectAe } from "@/lib/ae";
-import type { DraftFieldKey, SafetyFieldKey, SafetyCaseDraft } from "@/lib/types";
+import type {
+  CallObjective,
+  Channel,
+  DraftFieldKey,
+  SafetyFieldKey,
+  SafetyCaseDraft,
+} from "@/lib/types";
 
 function initialSafetyStub(draftTranscript: string, products: string[]): SafetyCaseDraft {
   return {
@@ -72,9 +78,9 @@ export default function ConfirmPage() {
 
   const handleMissingSubmit = (values: Partial<Record<DraftFieldKey, string>>) => {
     updateDraftFields(draft.id, {
-      channel: values.channel ? (values.channel.trim() as any) : draft.channel,
+      channel: values.channel ? (values.channel.trim() as Channel) : draft.channel,
       call_objective: values.call_objective
-        ? (values.call_objective.trim() as any)
+        ? (values.call_objective.trim() as CallObjective)
         : draft.call_objective,
       products_discussed: values.products_discussed
         ? values.products_discussed

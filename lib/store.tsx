@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { CallDraft, SafetyCaseDraft } from "./types";
+import { CallDraft } from "./types";
 import { getEventById } from "./mock";
 import { MOCK_VISITS, type VisitSummary } from "./mockVisits";
 
