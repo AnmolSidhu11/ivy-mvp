@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- useRepo is a hook exported from the same file as RepoProvider */
 import {
   createContext,
   useCallback,
@@ -97,7 +98,7 @@ export function RepoProvider({ children }: { children: ReactNode }) {
 
   const repo = useMemo(
     (): ClaimsRepo => getRepo(state.mode, state.adls),
-    [state.mode, state.adls.adlsSasBaseUrl, state.adls.containerName, state.adls.prefix]
+    [state.mode, state.adls]
   );
 
   // local/adls -> simulated runner; snowflake -> simulated for now (TODO: call backend later)

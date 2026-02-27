@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { StorageMode } from "../repos/repoFactory";
 import type { ADLSConfig } from "../types";
 import "./SettingsDrawer.css";
@@ -11,20 +11,21 @@ type Props = {
   onSave: (mode: StorageMode, config: ADLSConfig) => void;
 };
 
-export function SettingsDrawer({ open, onClose, storageMode, adlsConfig, onSave }: Props) {
-  const [mode, setMode] = useState<StorageMode>(storageMode);
-  const [sasBaseUrl, setSasBaseUrl] = useState(adlsConfig.adlsSasBaseUrl);
-  const [containerName, setContainerName] = useState(adlsConfig.containerName);
-  const [prefix, setPrefix] = useState(adlsConfig.prefix);
-
-  useEffect(() => {
-    if (open) {
-      setMode(storageMode);
-      setSasBaseUrl(adlsConfig.adlsSasBaseUrl);
-      setContainerName(adlsConfig.containerName);
-      setPrefix(adlsConfig.prefix);
-    }
-  }, [open, storageMode, adlsConfig.adlsSasBaseUrl, adlsConfig.containerName, adlsConfig.prefix]);
+function SettingsDrawerForm({
+  initialMode,
+  initialAdls,
+  onClose,
+  onSave,
+}: {
+  initialMode: StorageMode;
+  initialAdls: ADLSConfig;
+  onClose: () => void;
+  onSave: (mode: StorageMode, config: ADLSConfig) => void;
+}) {
+  const [mode, setMode] = useState<StorageMode>(initialMode);
+  const [sasBaseUrl, setSasBaseUrl] = useState(initialAdls.adlsSasBaseUrl);
+  const [containerName, setContainerName] = useState(initialAdls.containerName);
+  const [prefix, setPrefix] = useState(initialAdls.prefix);
 
   const handleSave = () => {
     onSave(mode, {
@@ -34,8 +35,6 @@ export function SettingsDrawer({ open, onClose, storageMode, adlsConfig, onSave 
     });
     onClose();
   };
-
-  if (!open) return null;
 
   return (
     <>
@@ -97,5 +96,18 @@ export function SettingsDrawer({ open, onClose, storageMode, adlsConfig, onSave 
         </div>
       </div>
     </>
+  );
+}
+
+export function SettingsDrawer({ open, onClose, storageMode, adlsConfig, onSave }: Props) {
+  if (!open) return null;
+  return (
+    <SettingsDrawerForm
+      key={`settings-${storageMode}-${adlsConfig.adlsSasBaseUrl}-${adlsConfig.containerName}-${adlsConfig.prefix}`}
+      initialMode={storageMode}
+      initialAdls={adlsConfig}
+      onClose={onClose}
+      onSave={onSave}
+    />
   );
 }

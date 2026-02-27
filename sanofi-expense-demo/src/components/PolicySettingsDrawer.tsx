@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getMealLimitPerPersonCad, setMealLimitPerPersonCad } from "../policy/policyConfig";
 import "./SettingsDrawer.css";
 
@@ -7,14 +7,14 @@ type Props = {
   onClose: () => void;
 };
 
-export function PolicySettingsDrawer({ open, onClose }: Props) {
-  const [mealLimit, setMealLimit] = useState(String(getMealLimitPerPersonCad()));
-
-  useEffect(() => {
-    if (open) {
-      setMealLimit(String(getMealLimitPerPersonCad()));
-    }
-  }, [open]);
+function PolicySettingsForm({
+  initialMealLimit,
+  onClose,
+}: {
+  initialMealLimit: number;
+  onClose: () => void;
+}) {
+  const [mealLimit, setMealLimit] = useState(String(initialMealLimit));
 
   const handleSave = () => {
     const n = Number(mealLimit);
@@ -23,8 +23,6 @@ export function PolicySettingsDrawer({ open, onClose }: Props) {
     }
     onClose();
   };
-
-  if (!open) return null;
 
   return (
     <>
@@ -59,5 +57,16 @@ export function PolicySettingsDrawer({ open, onClose }: Props) {
         </div>
       </div>
     </>
+  );
+}
+
+export function PolicySettingsDrawer({ open, onClose }: Props) {
+  if (!open) return null;
+  return (
+    <PolicySettingsForm
+      key={`policy-${open}-${getMealLimitPerPersonCad()}`}
+      initialMealLimit={getMealLimitPerPersonCad()}
+      onClose={onClose}
+    />
   );
 }

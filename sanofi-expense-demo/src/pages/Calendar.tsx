@@ -83,7 +83,7 @@ export function Calendar() {
 
   useEffect(() => {
     if (selectedEvent) setNotesEdit(selectedEvent.notes ?? "");
-  }, [selectedEvent?.id, selectedEvent?.notes]);
+  }, [selectedEvent]);
 
   const openDetail = (id: string) => {
     setSelectedId(id);

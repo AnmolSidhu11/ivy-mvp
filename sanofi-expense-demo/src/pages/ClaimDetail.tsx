@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import type { ExpenseClaim, ClaimStatus, Visit } from "../types";
 import { useRepo } from "../context/RepoContext";
@@ -107,7 +107,7 @@ export function ClaimDetail() {
   const visit = claim ? visitById.get(claim.visitId) : null;
   const auditReversed = claim ? [...claim.auditTrail].reverse() : [];
 
-  const loadClaim = () => {
+  const loadClaim = useCallback(() => {
     if (!id) return;
     setLoading(true);
     Promise.all([repo.getClaim(id), repo.listVisits()]).then(([c, v]) => {
@@ -115,11 +115,11 @@ export function ClaimDetail() {
       setVisits(v);
       setLoading(false);
     });
-  };
+  }, [id, repo]);
 
   useEffect(() => {
     loadClaim();
-  }, [id, repo]);
+  }, [loadClaim]);
 
   const handleSubmit = async () => {
     if (!claim || claim.status !== "Draft") return;
