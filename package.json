@@ -6,7 +6,7 @@
     "dev": "node scripts/clean-dev.js && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint app components lib"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.2",
