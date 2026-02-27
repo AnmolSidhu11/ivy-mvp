@@ -10,9 +10,9 @@ interface MissingFieldsFormProps {
 }
 
 export function MissingFieldsForm({
-  draftId, // included for future extensibility / debugging
   missing,
   onSubmit,
+  draftId: _draftId,
 }: MissingFieldsFormProps) {
   const fields = missing.slice(0, 3);
   const [values, setValues] = useState<Partial<Record<DraftFieldKey, string>>>({});
