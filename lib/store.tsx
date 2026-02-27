@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { CallDraft, SafetyCaseDraft } from "./types";
 import { getEventById } from "./mock";
+import { MOCK_VISITS, type VisitSummary } from "./mockVisits";
 
 const STORAGE_KEY = "drafts";
 
@@ -116,5 +117,38 @@ export function useDraftsStore(): DraftsContextValue & {
   }
   const getDraft = (id: string) => ctx.drafts[id];
   return { ...ctx, getDraft };
+}
+
+// --- Visits store for IVY history / new visit workflow ---
+
+interface VisitsContextValue {
+  visits: VisitSummary[];
+  addVisit: (visit: VisitSummary) => void;
+}
+
+const VisitsContext = createContext<VisitsContextValue | undefined>(undefined);
+
+export function VisitsProvider({ children }: { children: React.ReactNode }) {
+  const [visits, setVisits] = useState<VisitSummary[]>(() => MOCK_VISITS);
+
+  const value = useMemo<VisitsContextValue>(
+    () => ({
+      visits,
+      addVisit(visit) {
+        setVisits((prev) => [visit, ...prev]);
+      },
+    }),
+    [visits],
+  );
+
+  return <VisitsContext.Provider value={value}>{children}</VisitsContext.Provider>;
+}
+
+export function useVisitsStore(): VisitsContextValue {
+  const ctx = useContext(VisitsContext);
+  if (!ctx) {
+    throw new Error("useVisitsStore must be used within VisitsProvider");
+  }
+  return ctx;
 }
 
