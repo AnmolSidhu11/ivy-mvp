@@ -10,7 +10,7 @@ export interface PrecallResult {
 /** Deterministic placeholder pre-call brief. No external calls. */
 export function run(context: OrchestratorContext): PrecallResult {
   const visitId = context.visitId ?? "";
-  const hcpName = context.hcpName ?? "HCP";
+  const _hcpName = context.hcpName ?? "HCP";
   const location = context.location ?? "";
   const warnings: string[] = [];
   const output: PrecallBriefOutput = {

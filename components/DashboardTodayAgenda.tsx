@@ -104,10 +104,13 @@ export function DashboardTodayAgenda({ visits, claims: claimsProp, notes = [] }:
     <Card className="rounded-2xl border-white/60 bg-white/95 shadow-sm backdrop-blur-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold text-violet">
-          Today (Concierge)
+          Today&apos;s agenda
         </CardTitle>
         <p className="text-xs text-zinc-500">
-          Pre-call → Visit → Post-call → Expense
+          Pre-call → Visit → Post-call → Expense ·{" "}
+          <Link href={todayYmd ? `/calendar?date=${todayYmd}` : "/calendar"} className="font-medium text-violet hover:underline">
+            View in Calendar
+          </Link>
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -148,7 +151,7 @@ export function DashboardTodayAgenda({ visits, claims: claimsProp, notes = [] }:
           </div>
         )}
         {!todayYmd ? (
-          <p className="text-xs text-zinc-500">Loading…</p>
+          <p className="text-xs text-zinc-500">Today</p>
         ) : !hasVisitItems ? (
           <div className="space-y-3">
             <p className="text-sm text-zinc-600">No visits scheduled for today.</p>
@@ -233,14 +236,13 @@ export function DashboardTodayAgenda({ visits, claims: claimsProp, notes = [] }:
             </ul>
             <div className="flex flex-wrap gap-2 border-t border-zinc-100 pt-2">
               <Link
-                href={`/calendar?date=${todayYmd}`}
-                className="text-xs font-medium text-violet hover:underline"
+                href={todayYmd ? `/calendar?date=${todayYmd}` : "/calendar"}
+                className="inline-flex rounded-full bg-violet px-3 py-1.5 text-xs font-medium text-white hover:bg-violet/90"
               >
-                Open Calendar
+                View in Calendar
               </Link>
-              <span className="text-zinc-300">·</span>
               <Link
-                href="/new-visit"
+                href={todayYmd ? `/new-visit?date=${todayYmd}` : "/new-visit"}
                 className="text-xs font-medium text-violet hover:underline"
               >
                 Create Visit

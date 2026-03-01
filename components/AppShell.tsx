@@ -20,7 +20,14 @@ export function AppShell({ title, backHref, children }: AppShellProps) {
           {backHref ? (
             <button
               type="button"
-              onClick={() => (backHref === "back" ? router.back() : router.push(backHref))}
+              onClick={() => {
+                try {
+                  if (backHref === "back") router.back();
+                  else router.push(backHref);
+                } catch {
+                  router.push("/dashboard");
+                }
+              }}
               className="inline-flex h-8 items-center justify-center rounded-full border border-zinc-300 px-3 text-xs font-medium text-zinc-800 hover:bg-zinc-100"
             >
               ← Back

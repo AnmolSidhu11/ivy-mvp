@@ -76,6 +76,28 @@ export function getWeekDates(dateYmd: string): string[] {
   return out;
 }
 
+/** Year-month "YYYY-MM". */
+export function getMonthGrid(yearMonth: string): (string | null)[] {
+  const [y, m] = yearMonth.split("-").map(Number);
+  if (!y || !m || m < 1 || m > 12) return [];
+  const first = new Date(y, m - 1, 1);
+  const last = new Date(y, m, 0);
+  const daysInMonth = last.getDate();
+  const firstWeekday = (first.getDay() + 6) % 7;
+  const cells: (string | null)[] = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const mm = String(m).padStart(2, "0");
+    const dd = String(d).padStart(2, "0");
+    cells.push(`${y}-${mm}-${dd}`);
+  }
+  const remainder = cells.length % 7;
+  if (remainder !== 0) {
+    for (let i = 0; i < 7 - remainder; i++) cells.push(null);
+  }
+  return cells;
+}
+
 /** Local minutes from midnight (0–1439) from an ISO date string. */
 export function localMinutesFromMidnight(iso: string): number {
   const d = new Date(iso);
@@ -128,7 +150,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: "Planned",
-        primaryAction: { label: "Open pre-call brief", href: `${base}#precall` },
+        primaryAction: { label: "Open pre-call brief", href: `${base}?tab=precall` },
       },
       {
         id: `${v.id}-visit`,
@@ -139,7 +161,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: v.status,
-        primaryAction: { label: "Capture notes", href: `${base}#capture` },
+        primaryAction: { label: "Capture notes", href: `${base}?tab=capture` },
       },
       {
         id: `${v.id}-postcall`,
@@ -150,7 +172,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: "Planned",
-        primaryAction: { label: "Draft post-call summary", href: `${base}#postcall` },
+        primaryAction: { label: "Draft post-call summary", href: `${base}?tab=postcall` },
       },
       {
         id: `${v.id}-expense`,
@@ -166,7 +188,7 @@ export function deriveAgendaItems(
           ? { label: "View claim", href: `/claim/${encodeURIComponent(claimForVisit.id)}` }
           : {
               label: "Submit expense",
-              href: `/expense?date=${dateYmd}&visitId=${encodeURIComponent(v.id)}`,
+              href: `/expense/submit?date=${dateYmd}&visitId=${encodeURIComponent(v.id)}`,
             },
       },
     );
@@ -217,6 +239,42 @@ const EMPTY_CLAIMS_COUNTS: DayClaimsSummary["counts"] = {
   approved: 0,
   rejected: 0,
 };
+
+/** Load all claims from localStorage (expense-demo:claims). Returns empty on server. */
+export function loadAllClaims(): Array<DayClaim & { dateYmd: string }> {
+  if (typeof window === "undefined") return [];
+  let rawClaims: unknown[] = [];
+  try {
+    const raw = window.localStorage.getItem("expense-demo:claims");
+    if (raw) rawClaims = JSON.parse(raw) as unknown[];
+  } catch {
+    return [];
+  }
+  const out: Array<DayClaim & { dateYmd: string }> = [];
+  for (const raw of rawClaims) {
+    if (!raw || typeof raw !== "object") continue;
+    const c = raw as { id?: string; updatedAt?: string; visitId?: string; status?: string };
+    const { id, updatedAt, visitId, status } = c;
+    if (!id || !updatedAt || typeof updatedAt.slice !== "function") continue;
+    const dateYmd = updatedAt.slice(0, 10);
+    const normalizedStatus =
+      status === "Draft" ||
+      status === "Submitted" ||
+      status === "In Review" ||
+      status === "Approved" ||
+      status === "Rejected"
+        ? status
+        : "Draft";
+    out.push({
+      id,
+      visitId,
+      status: normalizedStatus,
+      updatedAtIso: updatedAt,
+      dateYmd,
+    });
+  }
+  return out;
+}
 
 /** Load claims for dateYmd from localStorage (expense-demo:claims). Returns empty on server. */
 export function loadDayClaims(

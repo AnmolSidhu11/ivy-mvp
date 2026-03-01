@@ -23,6 +23,10 @@ export interface VisitSummary {
     objections: ConfidenceLevel;
     nextActions: ConfidenceLevel;
   };
+  /** Pre-call brief (editable on visit page) */
+  precallObjectives?: string[];
+  precallKeyMessages?: string[];
+  lastMeetingSummary?: string;
 }
 
 const REQUIRED_FIELD_LABELS = [
