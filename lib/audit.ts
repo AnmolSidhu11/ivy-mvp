@@ -6,7 +6,8 @@ export type AuditAction =
   | "ai_precall_generated"
   | "ai_postcall_generated"
   | "ics_generated"
-  | "calendar_day_viewed";
+  | "calendar_day_viewed"
+  | "concierge_ask";
 
 export interface AuditEvent {
   id: string;

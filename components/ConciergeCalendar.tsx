@@ -15,7 +15,6 @@ import {
   getWeekStartMonday,
   localMinutesFromMidnight,
   durationMinutes,
-  type DayClaim,
   type DayClaimsSummary,
   type TimelineItem,
 } from "@/lib/conciergeAgenda";
@@ -31,6 +30,7 @@ import type {
 } from "@/lib/concierge/types";
 import { QuickNoteModal } from "@/components/QuickNoteModal";
 import { AddToCalendarDropdown } from "@/components/AddToCalendarDropdown";
+import { DEMO_MODE } from "@/lib/env";
 
 type ViewMode = "agenda" | "day" | "week";
 
@@ -292,7 +292,12 @@ export function ConciergeCalendar({ initialDate }: Props) {
       });
       return;
     }
-    router.push(item.primaryAction.href);
+    try {
+      router.push(item.primaryAction.href);
+    } catch {
+      toast("Not implemented yet");
+      router.push("/dashboard");
+    }
   };
 
   const runOrchestratorTask = useCallback(
@@ -501,20 +506,27 @@ export function ConciergeCalendar({ initialDate }: Props) {
               className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-800 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
             />
             <div className="flex rounded-full border border-zinc-200 bg-white p-0.5">
-              {(["agenda", "day", "week"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setViewMode(mode)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-colors ${
-                    viewMode === mode
-                      ? "bg-violet text-white"
-                      : "text-zinc-600 hover:bg-zinc-100"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
+              {(["agenda", "day", "week"] as const).map((mode) => {
+                const disabled = DEMO_MODE && mode !== "agenda";
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    title={disabled ? "Coming soon" : undefined}
+                    disabled={disabled}
+                    onClick={() => !disabled && setViewMode(mode)}
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-medium capitalize transition-colors ${
+                      disabled ? "cursor-not-allowed text-zinc-400" : ""
+                    } ${
+                      viewMode === mode
+                        ? "bg-violet text-white"
+                        : "text-zinc-600 hover:bg-zinc-100"
+                    } ${disabled && viewMode !== mode ? "bg-zinc-50" : ""}`}
+                  >
+                    {mode}
+                  </button>
+                );
+              })}
             </div>
             <button
               type="button"
@@ -611,9 +623,9 @@ export function ConciergeCalendar({ initialDate }: Props) {
                       {timeGridItems.map((item) => {
                         const startMin = localMinutesFromMidnight(item.startIso);
                         const dur = durationMinutes(item.startIso, item.endIso);
-                        let topMin = Math.max(GRID_START_MIN, startMin);
-                        let endMin = Math.min(GRID_END_MIN, startMin + dur);
-                        let heightMin = endMin - topMin;
+                        const topMin = Math.max(GRID_START_MIN, startMin);
+                        const endMin = Math.min(GRID_END_MIN, startMin + dur);
+                        const heightMin = endMin - topMin;
                         if (heightMin <= 0) return null;
                         const topPct = ((topMin - GRID_START_MIN) / RANGE_MIN) * 100;
                         const heightPct = (heightMin / RANGE_MIN) * 100;
@@ -685,9 +697,9 @@ export function ConciergeCalendar({ initialDate }: Props) {
                     const dur = isNote ? 5 : durationMinutes(item.startIso, item.endIso);
                     const GRID_START_MIN = 7 * 60;
                     const RANGE_MIN = 720;
-                    let topMin = Math.max(GRID_START_MIN, startMin);
-                    let endMin = Math.min(19 * 60, startMin + dur);
-                    let heightMin = endMin - topMin;
+                    const topMin = Math.max(GRID_START_MIN, startMin);
+                    const endMin = Math.min(19 * 60, startMin + dur);
+                    const heightMin = endMin - topMin;
                     if (heightMin <= 0) return null;
                     const topPct = ((topMin - GRID_START_MIN) / RANGE_MIN) * 100;
                     const heightPct = (heightMin / RANGE_MIN) * 100;

@@ -4,10 +4,11 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { CallDraft } from "./types";
 import { getEventById } from "./mock";
 import { MOCK_VISITS, type VisitSummary } from "./mockVisits";
-import { INTERNAL_MODE } from "./env";
+import { INTERNAL_MODE, DEMO_MODE } from "./env";
 import type { NotesRepo } from "./notesRepo";
 import { LocalNotesRepo } from "./localNotesRepo";
 import { listVisits, upsertVisit } from "./visitsRepo";
+import { seedDemoDataIfEmpty } from "./demoSeed";
 
 const STORAGE_KEY = "drafts";
 
@@ -136,12 +137,17 @@ export function VisitsProvider({ children }: { children: React.ReactNode }) {
   const [visits, setVisits] = useState<VisitSummary[]>([]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (DEMO_MODE) {
+      seedDemoDataIfEmpty();
+    }
     let list = listVisits();
-    if (list.length === 0 && typeof window !== "undefined") {
+    if (list.length === 0) {
       MOCK_VISITS.forEach((v) => upsertVisit(v));
       list = listVisits();
     }
-    setVisits(list);
+    const toSet = list;
+    queueMicrotask(() => setVisits(toSet));
   }, []);
 
   const value = useMemo<VisitsContextValue>(

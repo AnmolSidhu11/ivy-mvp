@@ -18,6 +18,7 @@ export type RepNote = Note;
 
 export interface NotesRepo {
   listByDate(dateYmd: string): Promise<Note[]>;
+  listAll?(): Promise<Note[]>;
   get(noteId: string): Promise<Note | null>;
   create(note: Omit<Note, "id" | "createdAtIso" | "updatedAtIso">): Promise<Note>;
   update(noteId: string, patch: Partial<Pick<Note, "title" | "body">>): Promise<Note | null>;

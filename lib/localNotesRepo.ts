@@ -43,6 +43,10 @@ export const LocalNotesRepo: NotesRepo = {
     return all.filter((n) => n.dateYmd === dateYmd);
   },
 
+  async listAll(): Promise<Note[]> {
+    return loadAllNotes();
+  },
+
   async get(noteId: string): Promise<Note | null> {
     const all = loadAllNotes();
     return all.find((n) => n.id === noteId) ?? null;

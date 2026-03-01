@@ -20,17 +20,21 @@ export interface CaptureCardProps {
   captureStatus: CaptureStatus;
   onStartProcessing: () => void;
   onUploadChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  /** When user clicks "Use Recording", pass the recorded blob (e.g. for synthetic transcript). */
+  onRecordingReady?: (blob: Blob) => void;
 }
 
 export function CaptureCard({
   captureStatus,
   onStartProcessing,
   onUploadChange,
+  onRecordingReady,
 }: CaptureCardProps) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastRecordedBlobRef = useRef<Blob | null>(null);
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlobUrl, setRecordedBlobUrl] = useState<string | null>(null);
@@ -40,15 +44,12 @@ export function CaptureCard({
   const [mediaSupported, setMediaSupported] = useState(false);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    if (typeof window === "undefined") return;
+    const t = window.setTimeout(() => {
       setMounted(true);
-      if (typeof window !== "undefined") {
-        setMediaSupported(typeof window.MediaRecorder === "function");
-      }
+      setMediaSupported(typeof window.MediaRecorder === "function");
     }, 0);
-    return () => {
-      window.clearTimeout(timer);
-    };
+    return () => window.clearTimeout(t);
   }, []);
 
   const revokeRecordedUrl = useCallback((url: string | null) => {
@@ -58,6 +59,7 @@ export function CaptureCard({
   }, []);
 
   const clearRecording = useCallback(() => {
+    lastRecordedBlobRef.current = null;
     setRecordedBlobUrl(null);
     setRecordError(null);
     setRecordingSeconds(0);
@@ -111,6 +113,7 @@ export function CaptureCard({
         streamRef.current = null;
         if (chunksRef.current.length === 0) return;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        lastRecordedBlobRef.current = blob;
         const url = URL.createObjectURL(blob);
         setRecordedBlobUrl(url);
       };
@@ -147,9 +150,10 @@ export function CaptureCard({
   }, []);
 
   const handleUseRecording = useCallback(() => {
-    if (!recordedBlobUrl) return;
+    const blob = lastRecordedBlobRef.current;
+    if (blob) onRecordingReady?.(blob);
     onStartProcessing();
-  }, [recordedBlobUrl, onStartProcessing]);
+  }, [onRecordingReady, onStartProcessing]);
 
   const isProcessing = captureStatus === "processing";
   const isDisabled = isProcessing || isRecording;

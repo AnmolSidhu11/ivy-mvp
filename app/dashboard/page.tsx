@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import {
   type VisitSummary,
@@ -31,6 +30,15 @@ import { useVisitsStore } from "@/lib/store";
 import { CaptureCard, type CaptureStatus } from "@/components/CaptureCard";
 import { DashboardNav } from "@/components/DashboardNav";
 import { DashboardTodayAgenda } from "@/components/DashboardTodayAgenda";
+import { VisitFormLiveFill } from "@/components/VisitFormLiveFill";
+import { MissingFieldsTracker } from "@/components/MissingFieldsTracker";
+import { AssistantFollowUpPanel } from "@/components/AssistantFollowUpPanel";
+import {
+  createEmptyFormState,
+  extractFromText,
+  type VisitFormState,
+  type VisitFormMeta,
+} from "@/lib/visitCaptureForm";
 
 function confidenceVariant(level: ConfidenceLevel): "success" | "warning" | "destructive" {
   if (level === "high") return "success";
@@ -42,12 +50,32 @@ function confidenceLabel(level: ConfidenceLevel): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
+/** Deterministic sample transcript when user clicks "Use Recording" (no external STT). */
+const SAMPLE_TRANSCRIPT =
+  "Visit with Dr. Smith. Objective was to discuss Toujeo and dosing. Asked about titration. Concern was cost. Next step is to send samples and follow up in two weeks.";
+
 export default function DashboardPage() {
   const { visits } = useVisitsStore();
   const [captureStatus, setCaptureStatus] = useState<CaptureStatus>("idle");
   const [selectedVisit, setSelectedVisit] = useState<VisitSummary | null>(
     () => (visits[0] ?? null)
   );
+  const [formState, setFormState] = useState<VisitFormState>(() => createEmptyFormState());
+  const [formMeta, setFormMeta] = useState<VisitFormMeta>({});
+  const [transcriptionText, setTranscriptionText] = useState("");
+  const [voicePrompt, setVoicePrompt] = useState("");
+
+  useEffect(() => {
+    if (!transcriptionText.trim()) return;
+    const t = window.setTimeout(() => {
+      const { updates, meta } = extractFromText(transcriptionText);
+      if (Object.keys(updates).length > 0) {
+        setFormState((prev) => ({ ...prev, ...updates }));
+        setFormMeta((prev) => ({ ...prev, ...meta }));
+      }
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [transcriptionText]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -67,15 +95,25 @@ export default function DashboardPage() {
     setCaptureStatus("processing");
   }, []);
 
+  const handleRecordingReady = useCallback((_blob: Blob) => {
+    setTranscriptionText(SAMPLE_TRANSCRIPT);
+    toast.info("Sample transcript applied. Edit form or paste your own.");
+  }, []);
+
   const handleUploadChange: React.ChangeEventHandler<HTMLInputElement> = useCallback(
     (e) => {
       if (!e.target.files || e.target.files.length === 0) return;
       toast.info("Upload received");
       setCaptureStatus("processing");
+      setTranscriptionText(SAMPLE_TRANSCRIPT);
       e.target.value = "";
     },
     []
   );
+
+  const handleFormChange = useCallback((updates: Partial<VisitFormState>) => {
+    setFormState((prev) => ({ ...prev, ...updates }));
+  }, []);
 
   const handleCopySummary = useCallback(() => {
     if (!selectedVisit) return;
@@ -136,14 +174,51 @@ export default function DashboardPage() {
             </div>
           </header>
 
-          <section className="grid gap-6 md:grid-cols-2">
-            {/* A) Capture */}
-            <CaptureCard
-              captureStatus={captureStatus}
-              onStartProcessing={handleStartProcessing}
-              onUploadChange={handleUploadChange}
-            />
+          <section className="space-y-6">
+            <h2 className="text-lg font-semibold text-violet">Voice Capture</h2>
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr_280px]">
+              <div className="space-y-3">
+                <CaptureCard
+                  captureStatus={captureStatus}
+                  onStartProcessing={handleStartProcessing}
+                  onUploadChange={handleUploadChange}
+                  onRecordingReady={handleRecordingReady}
+                />
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Transcription</CardTitle>
+                    <CardDescription className="text-xs">
+                      Paste or edit. Form updates from phrases like &ldquo;objective is&rdquo;, &ldquo;next step&rdquo;, etc.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <textarea
+                      className="min-h-[80px] w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm text-zinc-900 focus:border-violet focus:outline-none focus:ring-1 focus:ring-violet"
+                      placeholder="Paste transcription or type notes…"
+                      value={transcriptionText}
+                      onChange={(e) => setTranscriptionText(e.target.value)}
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <VisitFormLiveFill
+                state={formState}
+                meta={formMeta}
+                onChange={handleFormChange}
+              />
+              <div className="space-y-3">
+                <MissingFieldsTracker formState={formState} />
+                <AssistantFollowUpPanel
+                  formState={formState}
+                  voicePrompt={voicePrompt}
+                  onVoicePromptChange={setVoicePrompt}
+                />
+              </div>
+            </div>
+          </section>
 
+          <section className="grid gap-6 md:grid-cols-2">
             {/* B) Visit Summary */}
             <Card>
               <CardHeader>

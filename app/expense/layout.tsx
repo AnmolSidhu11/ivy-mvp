@@ -6,7 +6,7 @@ export default function ExpenseLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-500">Loading…</div>}>
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-slate-600">Expense</div>}>
       {children}
     </Suspense>
   );
