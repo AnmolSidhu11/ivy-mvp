@@ -150,7 +150,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: "Planned",
-        primaryAction: { label: "Open pre-call brief", href: `${base}#precall` },
+        primaryAction: { label: "Open pre-call brief", href: `${base}?tab=precall` },
       },
       {
         id: `${v.id}-visit`,
@@ -161,7 +161,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: v.status,
-        primaryAction: { label: "Capture notes", href: `${base}#capture` },
+        primaryAction: { label: "Capture notes", href: `${base}?tab=capture` },
       },
       {
         id: `${v.id}-postcall`,
@@ -172,7 +172,7 @@ export function deriveAgendaItems(
         hcpName: v.hcpName,
         visitId: v.id,
         status: "Planned",
-        primaryAction: { label: "Draft post-call summary", href: `${base}#postcall` },
+        primaryAction: { label: "Draft post-call summary", href: `${base}?tab=postcall` },
       },
       {
         id: `${v.id}-expense`,
@@ -188,7 +188,7 @@ export function deriveAgendaItems(
           ? { label: "View claim", href: `/claim/${encodeURIComponent(claimForVisit.id)}` }
           : {
               label: "Submit expense",
-              href: `/expense?date=${dateYmd}&visitId=${encodeURIComponent(v.id)}`,
+              href: `/expense/submit?date=${dateYmd}&visitId=${encodeURIComponent(v.id)}`,
             },
       },
     );

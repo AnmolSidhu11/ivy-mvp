@@ -86,7 +86,7 @@ export function runOrchestrator(req: OrchestratorRequest): OrchestratorResponse 
   const { task, context, userInput } = req;
   const agentName = getAgentForTask(task);
   const ts = new Date().toISOString();
-  const inputHash = simpleHash(stringifyContext(context) + (userInput ?? ""));
+  const _inputHash = simpleHash(stringifyContext(context) + (userInput ?? ""));
 
   try {
     let output: OrchestratorOutput | null = null;
@@ -137,7 +137,7 @@ export function runOrchestrator(req: OrchestratorRequest): OrchestratorResponse 
       warnings = [...warnings, ...verifier.warnings];
     }
 
-    const outputHash = simpleHash(JSON.stringify(output));
+    const _outputHash = simpleHash(JSON.stringify(output));
     const auditId = logAudit({
       action: `orchestrator_${task}`,
       tsIso: ts,

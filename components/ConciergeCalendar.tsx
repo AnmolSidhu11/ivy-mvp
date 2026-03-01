@@ -10,9 +10,11 @@ import type { Note } from "@/lib/notesRepo";
 import {
   deriveAgendaItems,
   loadDayClaims,
+  loadAllClaims,
   normalizeDateYmd,
   getWeekDates,
   getWeekStartMonday,
+  getMonthGrid,
   localMinutesFromMidnight,
   durationMinutes,
   type DayClaimsSummary,
@@ -30,9 +32,13 @@ import type {
 } from "@/lib/concierge/types";
 import { QuickNoteModal } from "@/components/QuickNoteModal";
 import { AddToCalendarDropdown } from "@/components/AddToCalendarDropdown";
+<<<<<<< HEAD
+import { ConciergePanel } from "@/components/ConciergePanel";
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 import { DEMO_MODE } from "@/lib/env";
 
-type ViewMode = "agenda" | "day" | "week";
+type ViewMode = "month" | "agenda" | "day" | "week";
 
 type WeekDayData = {
   dateYmd: string;
@@ -94,7 +100,10 @@ export function ConciergeCalendar({ initialDate }: Props) {
     note?: Note | null;
     dateYmdOverride?: string;
   }>({});
-  const [viewMode, setViewMode] = useState<ViewMode>("agenda");
+  const [viewMode, setViewMode] = useState<ViewMode>("month");
+  const [allNotesForMonth, setAllNotesForMonth] = useState<Note[]>([]);
+  const [currentYearMonth, setCurrentYearMonth] = useState<string>("");
+  const [todayYmd, setTodayYmd] = useState<string>("");
   const [weekData, setWeekData] = useState<WeekDayData[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<{ item: TimelineItem; dateYmd: string } | null>(null);
   const [orchestratorDraft, setOrchestratorDraft] = useState<{
@@ -107,17 +116,23 @@ export function ConciergeCalendar({ initialDate }: Props) {
   } | null>(null);
   const [orchestratorLoading, setOrchestratorLoading] = useState<string | null>(null);
 
-  // Set default to today on mount (client-only; no Date in initial state).
+  // Set default to today on mount and track today for highlight (client-only; no Date in initial state).
   useEffect(() => {
+    const today = toDateYmd(new Date());
+    setTodayYmd(today);
     if (!selectedDateYmd) {
-      const today = toDateYmd(new Date());
       setSelectedDateYmd(today);
+      setCurrentYearMonth(today.slice(0, 7));
       logAudit("calendar_day_viewed", "calendar", today, "initial");
     } else {
+      setCurrentYearMonth((prev) => prev || selectedDateYmd.slice(0, 7));
       logAudit("calendar_day_viewed", "calendar", selectedDateYmd, "initial");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    if (selectedDateYmd) setCurrentYearMonth(selectedDateYmd.slice(0, 7));
+  }, [selectedDateYmd]);
 
   // Sync URL when selected date changes.
   useEffect(() => {
@@ -183,6 +198,28 @@ export function ConciergeCalendar({ initialDate }: Props) {
       cancelled = true;
     };
   }, [viewMode, selectedDateYmd, visits, notesRepo]);
+
+  useEffect(() => {
+    if (viewMode !== "month" || !notesRepo.listAll) return;
+    notesRepo.listAll().then(setAllNotesForMonth).catch(() => setAllNotesForMonth([]));
+  }, [viewMode, notesRepo]);
+
+  const monthGrid = useMemo(
+    () => (currentYearMonth ? getMonthGrid(currentYearMonth) : []),
+    [currentYearMonth]
+  );
+  const countsPerDay = useMemo(() => {
+    const allClaims = typeof window !== "undefined" ? loadAllClaims() : [];
+    const map = new Map<string, { visits: number; claims: number; notes: number }>();
+    for (const dateYmd of monthGrid) {
+      if (!dateYmd) continue;
+      const nVisits = visits.filter((v) => normalizeDateYmd(v.date) === dateYmd).length;
+      const nClaims = allClaims.filter((c) => c.dateYmd === dateYmd).length;
+      const nNotes = allNotesForMonth.filter((n) => n.dateYmd === dateYmd).length;
+      map.set(dateYmd, { visits: nVisits, claims: nClaims, notes: nNotes });
+    }
+    return map;
+  }, [monthGrid, visits, allNotesForMonth]);
 
   const dayVisits = useMemo(
     () =>
@@ -506,8 +543,13 @@ export function ConciergeCalendar({ initialDate }: Props) {
               className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-800 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
             />
             <div className="flex rounded-full border border-zinc-200 bg-white p-0.5">
+<<<<<<< HEAD
+              {(["month", "agenda", "day", "week"] as const).map((mode) => {
+                const disabled = DEMO_MODE && mode !== "month";
+=======
               {(["agenda", "day", "week"] as const).map((mode) => {
                 const disabled = DEMO_MODE && mode !== "agenda";
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
                 return (
                   <button
                     key={mode}
@@ -530,11 +572,17 @@ export function ConciergeCalendar({ initialDate }: Props) {
             </div>
             <button
               type="button"
-              onClick={() => openQuickNote({})}
+              onClick={() => openQuickNote({ dateYmdOverride: selectedDateYmd })}
               className="rounded-full bg-zinc-900 px-3 py-1.5 font-medium text-xs text-white hover:bg-zinc-800"
             >
               + Quick note
             </button>
+            <Link
+              href={`/new-visit?date=${selectedDateYmd}`}
+              className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 font-medium text-xs text-zinc-700 hover:bg-zinc-50"
+            >
+              + Add meeting
+            </Link>
             {typeof process !== "undefined" &&
               process.env.NODE_ENV === "development" && (
               <button
@@ -547,6 +595,204 @@ export function ConciergeCalendar({ initialDate }: Props) {
             )}
           </div>
         </header>
+
+        {/* Month view: full month grid (30/31 days) + right-side Agenda panel when date clicked */}
+        {viewMode === "month" && (
+          <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+            <section className="rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-black/5">
+              <div className="mb-3 flex items-center justify-between border-b border-zinc-100 pb-2">
+                <h2 className="text-sm font-semibold text-zinc-900">
+                  {currentYearMonth
+                    ? (() => {
+                        const [y, m] = currentYearMonth.split("-");
+                        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+                        return `${monthNames[Number(m) - 1] ?? m} ${y}`;
+                      })()
+                    : "Month"}
+                </h2>
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentYearMonth) return;
+                      const [y, m] = currentYearMonth.split("-").map(Number);
+                      const d = new Date(y, m - 2, 1);
+                      const prev = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                      setCurrentYearMonth(prev);
+                      setSelectedDateYmd(`${prev}-01`);
+                    }}
+                    className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                  >
+                    ← Prev
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentYearMonth) return;
+                      const [y, m] = currentYearMonth.split("-").map(Number);
+                      const d = new Date(y, m, 1);
+                      const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                      setCurrentYearMonth(next);
+                      setSelectedDateYmd(`${next}-01`);
+                    }}
+                    className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-px rounded-lg border border-zinc-100 bg-zinc-100">
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                  <div
+                    key={d}
+                    className="bg-zinc-50 py-1.5 text-center text-[10px] font-semibold text-zinc-600"
+                  >
+                    {d}
+                  </div>
+                ))}
+                {monthGrid.map((dateYmd, idx) => {
+                  const counts = dateYmd ? countsPerDay.get(dateYmd) : null;
+                  const hasActivity = counts && (counts.visits > 0 || counts.claims > 0 || counts.notes > 0);
+                  const isSelected = dateYmd === selectedDateYmd;
+                  const isToday = dateYmd === todayYmd;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => dateYmd && setSelectedDateYmd(dateYmd)}
+                      className={`min-h-[72px] rounded-none bg-white p-1.5 text-left text-xs transition-colors ${
+                        !dateYmd ? "cursor-default bg-zinc-50/50" : "hover:bg-violet/10"
+                      } ${isSelected ? "ring-2 ring-violet bg-violet/10" : ""} ${isToday ? "bg-amber-50/80 ring-1 ring-amber-200" : ""} ${hasActivity ? "font-medium text-zinc-900" : "text-zinc-500"}`}
+                    >
+                      {dateYmd ? (
+                        <>
+                          <span className="block font-mono">{dateYmd.slice(8)}</span>
+                          {(counts?.visits ?? 0) + (counts?.claims ?? 0) + (counts?.notes ?? 0) > 0 && (
+                            <span className="mt-1 flex flex-wrap gap-0.5">
+                              {(counts?.visits ?? 0) > 0 && (
+                                <span className="rounded bg-violet/20 px-1 text-[10px] text-violet-800">
+                                  {counts!.visits}v
+                                </span>
+                              )}
+                              {(counts?.claims ?? 0) > 0 && (
+                                <span className="rounded bg-emerald-100 px-1 text-[10px] text-emerald-800">
+                                  {counts!.claims}c
+                                </span>
+                              )}
+                              {(counts?.notes ?? 0) > 0 && (
+                                <span className="rounded bg-zinc-200 px-1 text-[10px] text-zinc-700">
+                                  {counts!.notes}n
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Right-side Agenda panel for selected date */}
+            <aside className="flex flex-col gap-3">
+              {selectedDateYmd ? (
+                <>
+                  <section className="space-y-2 rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-black/5">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-2">
+                      <h2 className="text-sm font-semibold text-zinc-900">
+                        Agenda · {selectedDateYmd}
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openQuickNote({ dateYmdOverride: selectedDateYmd })}
+                          className="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                        >
+                          Add note
+                        </button>
+                        <Link
+                          href={`/new-visit?date=${selectedDateYmd}`}
+                          className="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-medium text-zinc-700 hover:bg-zinc-50"
+                        >
+                          Add meeting
+                        </Link>
+                        <Link
+                          href={dayVisits[0] ? `/expense/submit?date=${selectedDateYmd}&visitId=${encodeURIComponent(dayVisits[0].id)}` : `/expense/submit?date=${selectedDateYmd}`}
+                          className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800 hover:bg-emerald-100"
+                        >
+                          Submit expense
+                        </Link>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      {dayVisits.length} visit{dayVisits.length === 1 ? "" : "s"} · {notes.length} note{notes.length === 1 ? "" : "s"} · {claimsSummary.counts.total} claim{claimsSummary.counts.total === 1 ? "" : "s"}
+                    </p>
+                    {timeline.length === 0 ? (
+                      <div className="rounded-xl border border-zinc-100 bg-zinc-50/80 px-3 py-4 text-center">
+                        <p className="text-xs font-medium text-zinc-700">No activity for this day</p>
+                        <p className="mt-1 text-[11px] text-zinc-500">
+                          Add a note, add a meeting, or create a visit to see pre-call, visit, post-call, and expense items.
+                        </p>
+                      </div>
+                    ) : (
+                      <ul className="space-y-2">
+                        {timeline.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-start justify-between gap-2 rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-2 text-xs"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <span className="mr-2 font-mono text-[11px] text-zinc-500">{item.timeLabel}</span>
+                              <span
+                                className={
+                                  "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium " +
+                                  (item.type === "Visit" ? "bg-violet/10 text-violet" : item.type === "Expense" ? "bg-emerald-50 text-emerald-700" : item.type === "Note" ? "bg-zinc-100 text-zinc-700" : "bg-indigo-50 text-indigo-700")
+                                }
+                              >
+                                {item.type}
+                              </span>
+                              {item.hcpName && <span className="ml-1 font-medium text-zinc-900">{item.hcpName}</span>}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handlePrimaryAction(item)}
+                              className="shrink-0 rounded-full bg-zinc-900 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-zinc-800"
+                            >
+                              {item.primaryAction.label}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                  <section className="rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-black/5">
+                    <h2 className="border-b border-zinc-100 pb-2 text-sm font-semibold text-zinc-900">Day summary</h2>
+                    <p className="mt-2 text-xs text-zinc-600">
+                      Claims: {claimsSummary.counts.draft} draft, {claimsSummary.counts.submitted} submitted, {claimsSummary.counts.approved} approved
+                    </p>
+                    {claimsSummary.claims.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {claimsSummary.claims.map((c) => (
+                          <li key={c.id} className="flex items-center justify-between text-[11px]">
+                            <span className="text-zinc-600">{c.status}</span>
+                            <Link href={`/claim/${encodeURIComponent(c.id)}`} className="font-medium text-violet hover:underline">Open</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                </>
+              ) : (
+                <section className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-8 text-center">
+                  <p className="text-sm font-medium text-zinc-600">Click a date to see agenda</p>
+                  <p className="mt-1 text-xs text-zinc-500">Pre-call · Visit · Post-call · Expense · Notes</p>
+                </section>
+              )}
+              <ConciergePanel variant="side" />
+            </aside>
+          </div>
+        )}
 
         {/* Week view: 7 columns Mon–Sun, time grid 07:00–19:00 */}
         {viewMode === "week" && (
@@ -734,12 +980,19 @@ export function ConciergeCalendar({ initialDate }: Props) {
           </section>
         )}
 
-        <div className={`grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] ${viewMode !== "agenda" ? "hidden" : ""}`}>
+        {/* Agenda + Day summary column (Agenda view and Day view only; Month view uses inline right panel) */}
+        <div
+          className={`grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] ${
+            viewMode === "month" ? "hidden" : ""
+          }`}
+        >
           {/* Agenda column */}
           <section className="space-y-3 rounded-2xl bg-white/95 p-4 shadow-sm ring-1 ring-black/5">
             <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-2">
               <div>
-                <h2 className="text-sm font-semibold text-zinc-900">Day agenda</h2>
+                <h2 className="text-sm font-semibold text-zinc-900">
+                  {viewMode === "month" ? "Agenda for selected day" : "Day agenda"}
+                </h2>
                 <p className="text-xs text-zinc-500">
                   {selectedDateYmd || "Select a date"} ·{" "}
                   {dayVisits.length} visit{dayVisits.length === 1 ? "" : "s"} ·{" "}

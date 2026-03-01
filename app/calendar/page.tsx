@@ -17,7 +17,7 @@ export default function CalendarPage({
       <div className="mx-auto flex max-w-6xl gap-8 px-6 py-10 lg:px-8 lg:py-12">
         <DashboardNav />
         <main className="min-w-0 flex-1">
-          <Suspense fallback={<div className="py-12 text-center text-zinc-500">Loading calendar…</div>}>
+          <Suspense fallback={<div className="py-12 text-center text-sm text-zinc-500">Calendar</div>}>
             <ConciergeCalendar initialDate={initialDate} />
           </Suspense>
         </main>

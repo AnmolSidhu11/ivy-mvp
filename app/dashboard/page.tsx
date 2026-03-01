@@ -33,12 +33,20 @@ import { DashboardTodayAgenda } from "@/components/DashboardTodayAgenda";
 import { VisitFormLiveFill } from "@/components/VisitFormLiveFill";
 import { MissingFieldsTracker } from "@/components/MissingFieldsTracker";
 import { AssistantFollowUpPanel } from "@/components/AssistantFollowUpPanel";
+<<<<<<< HEAD
+import { ConciergePanel } from "@/components/ConciergePanel";
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 import {
   createEmptyFormState,
   extractFromText,
   type VisitFormState,
   type VisitFormMeta,
 } from "@/lib/visitCaptureForm";
+<<<<<<< HEAD
+import { resetDemoData } from "@/lib/demoSeed";
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 
 function confidenceVariant(level: ConfidenceLevel): "success" | "warning" | "destructive" {
   if (level === "high") return "success";
@@ -164,6 +172,15 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              {typeof process !== "undefined" && process.env.NODE_ENV === "development" && (
+                <button
+                  type="button"
+                  onClick={resetDemoData}
+                  className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                >
+                  Reset demo
+                </button>
+              )}
               <div className="text-right text-sm">
                 <div className="font-medium text-zinc-800">Anmol Sidhu</div>
                 <div className="text-zinc-500">Field Rep · GTA West</div>
@@ -173,6 +190,12 @@ export default function DashboardPage() {
               </div>
             </div>
           </header>
+
+<<<<<<< HEAD
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold text-violet">Ask Concierge</h2>
+            <ConciergePanel variant="small" className="max-w-xl" />
+          </section>
 
           <section className="space-y-6">
             <h2 className="text-lg font-semibold text-violet">Voice Capture</h2>
@@ -218,6 +241,52 @@ export default function DashboardPage() {
             </div>
           </section>
 
+=======
+          <section className="space-y-6">
+            <h2 className="text-lg font-semibold text-violet">Voice Capture</h2>
+            <div className="grid gap-6 lg:grid-cols-[1fr_1fr_280px]">
+              <div className="space-y-3">
+                <CaptureCard
+                  captureStatus={captureStatus}
+                  onStartProcessing={handleStartProcessing}
+                  onUploadChange={handleUploadChange}
+                  onRecordingReady={handleRecordingReady}
+                />
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Transcription</CardTitle>
+                    <CardDescription className="text-xs">
+                      Paste or edit. Form updates from phrases like &ldquo;objective is&rdquo;, &ldquo;next step&rdquo;, etc.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <textarea
+                      className="min-h-[80px] w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-sm text-zinc-900 focus:border-violet focus:outline-none focus:ring-1 focus:ring-violet"
+                      placeholder="Paste transcription or type notes…"
+                      value={transcriptionText}
+                      onChange={(e) => setTranscriptionText(e.target.value)}
+                      rows={4}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+              <VisitFormLiveFill
+                state={formState}
+                meta={formMeta}
+                onChange={handleFormChange}
+              />
+              <div className="space-y-3">
+                <MissingFieldsTracker formState={formState} />
+                <AssistantFollowUpPanel
+                  formState={formState}
+                  voicePrompt={voicePrompt}
+                  onVoicePromptChange={setVoicePrompt}
+                />
+              </div>
+            </div>
+          </section>
+
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
           <section className="grid gap-6 md:grid-cols-2">
             {/* B) Visit Summary */}
             <Card>

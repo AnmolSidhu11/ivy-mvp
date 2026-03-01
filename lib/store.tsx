@@ -8,7 +8,11 @@ import { INTERNAL_MODE, DEMO_MODE } from "./env";
 import type { NotesRepo } from "./notesRepo";
 import { LocalNotesRepo } from "./localNotesRepo";
 import { listVisits, upsertVisit } from "./visitsRepo";
+<<<<<<< HEAD
+import { ensureDemoSeed } from "./demoSeed";
+=======
 import { seedDemoDataIfEmpty } from "./demoSeed";
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 
 const STORAGE_KEY = "drafts";
 
@@ -133,21 +137,48 @@ interface VisitsContextValue {
 
 const VisitsContext = createContext<VisitsContextValue | undefined>(undefined);
 
+function loadVisitsInitial(): VisitSummary[] {
+  if (typeof window === "undefined") return [];
+  ensureDemoSeed();
+  const seeded = listVisits();
+  if (seeded.length === 0) {
+    MOCK_VISITS.forEach((v) => upsertVisit(v));
+    return listVisits();
+  }
+  return seeded;
+}
+
 export function VisitsProvider({ children }: { children: React.ReactNode }) {
-  const [visits, setVisits] = useState<VisitSummary[]>([]);
+  const [visits, setVisits] = useState<VisitSummary[]>(loadVisitsInitial);
 
   useEffect(() => {
+<<<<<<< HEAD
+    ensureDemoSeed();
+    let next = listVisits();
+    if (next.length === 0) {
+=======
     if (typeof window === "undefined") return;
     if (DEMO_MODE) {
       seedDemoDataIfEmpty();
     }
     let list = listVisits();
     if (list.length === 0) {
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
       MOCK_VISITS.forEach((v) => upsertVisit(v));
-      list = listVisits();
+      next = listVisits();
     }
+<<<<<<< HEAD
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setVisits(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+=======
     const toSet = list;
     queueMicrotask(() => setVisits(toSet));
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
   }, []);
 
   const value = useMemo<VisitsContextValue>(

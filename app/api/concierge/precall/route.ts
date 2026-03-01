@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     likelyQuestions,
     keyMessages,
     complianceReminders,
+    disclaimer: "Draft – confirm with internal sources.",
   });
 }
 

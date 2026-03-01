@@ -48,6 +48,7 @@ export async function POST(req: Request) {
     objections,
     nextSteps,
     actionItems,
+    disclaimer: "Draft – confirm with internal sources.",
   });
 }
 

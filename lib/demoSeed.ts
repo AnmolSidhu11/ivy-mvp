@@ -1,15 +1,37 @@
 /**
- * Demo seed: when DEMO_MODE and visits/claims/notes are empty, seed deterministic sample data
- * so dashboard and calendar never show empty placeholders.
+ * Demo seed: when DEMO_MODE, write deterministic dataset into app store (localStorage).
+ * Uses existing keys: concierge_visits, concierge_notes, expense-demo:claims.
+ * Sets concierge_demo_seeded = "true" to prevent reseeding.
  */
 
 import type { VisitSummary } from "./mockVisits";
-import { getWeekDates } from "./conciergeAgenda";
-import { upsertVisit } from "./visitsRepo";
+import type { Note } from "./notesRepo";
+import { VISITS_STORAGE_KEY } from "./visitsRepo";
+import {
+  hcps,
+  visitsPast,
+  visitsFuture,
+  notes as demoNotes,
+  expenses,
+  type DemoVisit,
+} from "./demoDataset";
 
-const VISITS_KEY = "concierge_visits";
 const NOTES_KEY = "concierge_notes";
 const CLAIMS_KEY = "expense-demo:claims";
+const SEEDED_KEY = "concierge_demo_seeded";
+
+const REQUIRED_FIELD_LABELS = [
+  "HCP and date captured",
+  "Products discussed listed",
+  "Key points documented",
+  "Next actions recorded",
+  "No patient identifiers",
+];
+
+function isDemoMode(): boolean {
+  if (typeof process === "undefined") return true;
+  return process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
+}
 
 function toDateYmd(d: Date): string {
   const y = d.getFullYear();
@@ -18,158 +40,113 @@ function toDateYmd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Build 5 visits spread across this week (Mon–Fri). */
-function buildDemoVisits(): VisitSummary[] {
-  const today = toDateYmd(new Date());
-  const week = getWeekDates(today);
-  const weekDays = week.slice(0, 5); // Mon–Fri
-  const hcpNames = ["Dr. Patel", "Dr. Chen", "Dr. Alvarez", "Dr. Kim", "Dr. Walsh"];
-  const channels = ["In-person", "Virtual", "Phone", "In-person", "Virtual"];
-  const products = ["Dupixent", "ALTUVIIIO", "Beyfortus", "Toujeo", "Aubagio"];
-  const summaries = [
-    "Discussed Dupixent coverage workflow with clinic staff.",
-    "Reviewed ALTUVIIIO initiation logistics.",
-    "Quick follow-up on Beyfortus workflow.",
-    "Toujeo and Lantus comparison; HCP interested in switching.",
-    "Aubagio safety and monitoring; reinforced baseline labs.",
-  ];
-  return weekDays.map((date, i) => ({
-    id: `demo-v-${i + 1}`,
-    hcpName: hcpNames[i] ?? "Dr. Smith",
-    date,
-    channel: channels[i] ?? "In-person",
-    summary: summaries[i] ?? "Visit completed.",
-    products: [products[i] ?? "Product"],
-    keyPoints: ["Key point documented."],
+function demoVisitToVisitSummary(v: DemoVisit): VisitSummary {
+  const hcp = hcps.find((h) => h.id === v.hcpId);
+  const hcpName = hcp?.name ?? v.hcpId;
+  const status = v.status === "Completed" ? "completed" : "draft";
+  return {
+    id: v.id,
+    hcpName,
+    date: v.date,
+    channel: "In-person",
+    summary: `Visit with ${hcpName} re: ${v.products.join(", ")}.`,
+    products: v.products,
+    keyPoints: ["Key points documented."],
     objections: [] as string[],
     nextActions: ["Follow up as agreed."],
-    status: "completed" as const,
+    status,
     requiredFieldsPresent: [true, true, true, true, true],
-    requiredFieldLabels: [
-      "HCP and date captured",
-      "Products discussed listed",
-      "Key points documented",
-      "Next actions recorded",
-      "No patient identifiers",
-    ],
+    requiredFieldLabels: REQUIRED_FIELD_LABELS,
     hallucinationRisk: false,
     confidence: {
-      summary: "high" as const,
-      keyPoints: "high" as const,
-      objections: "med" as const,
-      nextActions: "high" as const,
+      summary: "high",
+      keyPoints: "high",
+      objections: "med",
+      nextActions: "high",
     },
+  };
+}
+
+function buildNotesForStore(): Note[] {
+  const iso = "2026-01-01T12:00:00.000Z";
+  return demoNotes.map((n) => ({
+    id: n.id,
+    dateYmd: n.date,
+    title: n.title,
+    body: n.body,
+    visitId: n.visitId,
+    hcpName: hcps.find((h) => h.id === n.hcpId)?.name,
+    createdAtIso: iso,
+    updatedAtIso: iso,
   }));
 }
 
-/** Build 3 claims: 1 draft, 1 approved, 1 rejected (stored as raw for expense-demo:claims). */
-function buildDemoClaims(visitIds: string[], weekDates: string[]): unknown[] {
-  const now = new Date().toISOString();
-  return [
-    {
-      id: "demo-claim-draft",
-      visitId: visitIds[0],
-      status: "Draft",
-      updatedAt: weekDates[0] ? `${weekDates[0]}T10:00:00.000Z` : now,
-    },
-    {
-      id: "demo-claim-approved",
-      visitId: visitIds[1],
-      status: "Approved",
-      updatedAt: weekDates[1] ? `${weekDates[1]}T14:00:00.000Z` : now,
-    },
-    {
-      id: "demo-claim-rejected",
-      visitId: visitIds[2],
-      status: "Rejected",
-      updatedAt: weekDates[2] ? `${weekDates[2]}T16:00:00.000Z` : now,
-    },
-  ];
-}
-
-/** Build 4 notes across this week. */
-function buildDemoNotes(visitIds: string[], weekDates: string[]): unknown[] {
-  const now = new Date().toISOString();
-  const titles = ["Pre-call prep", "Visit notes", "Follow-up reminder", "Sample note"];
-  const bodies = [
-    "Review coverage checklist before call.",
-    "HCP agreed to trial; send one-pager.",
-    "Schedule touchpoint in 2 weeks.",
-    "General note for demo.",
-  ];
-  const dates = [weekDates[0], weekDates[1], weekDates[2], weekDates[3]].filter(Boolean);
-  return dates.slice(0, 4).map((dateYmd, i) => ({
-    id: `demo-note-${i + 1}`,
-    dateYmd: dateYmd ?? weekDates[0],
-    title: titles[i] ?? "Note",
-    body: bodies[i] ?? "",
-    visitId: visitIds[i],
-    createdAtIso: now,
-    updatedAtIso: now,
+/** Raw claim rows for expense-demo:claims (id, visitId?, status, updatedAt). */
+function buildClaimsForStore(): { id: string; visitId?: string; status: string; updatedAt: string }[] {
+  return expenses.map((e) => ({
+    id: e.id,
+    visitId: e.visitId,
+    status: e.status,
+    updatedAt: `${e.date}T12:00:00.000Z`,
   }));
 }
 
-function loadVisits(): VisitSummary[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(VISITS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as VisitSummary[]) : [];
-  } catch {
-    return [];
-  }
-}
+/**
+ * If demo mode and not already seeded, write dataset to localStorage and set concierge_demo_seeded.
+ * Call from client only (useEffect). Ensures one visit for "today" so dashboard agenda is never empty.
+ * @returns true if data was written, false if skipped (already seeded or not demo mode)
+ */
+export function ensureDemoSeed(): boolean {
+  if (typeof window === "undefined") return false;
+  if (!isDemoMode()) return false;
+  if (window.localStorage.getItem(SEEDED_KEY) === "true") return false;
 
-function loadNotesRaw(): unknown[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(NOTES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as unknown[]) : [];
-  } catch {
-    return [];
-  }
-}
+  const allVisits: VisitSummary[] = [
+    ...visitsPast.map(demoVisitToVisitSummary),
+    ...visitsFuture.map(demoVisitToVisitSummary),
+  ];
 
-function loadClaimsRaw(): unknown[] {
-  if (typeof window === "undefined") return [];
+  const todayYmd = toDateYmd(new Date());
+  const hasVisitToday = allVisits.some((v) => v.date === todayYmd);
+  if (!hasVisitToday) {
+    const firstHcp = hcps[0]!;
+    allVisits.push(
+      demoVisitToVisitSummary({
+        id: "VIS-demo-today",
+        date: todayYmd,
+        time: "10:00",
+        status: "Completed",
+        hcpId: firstHcp.id,
+        products: ["Dupixent"],
+        location: firstHcp.clinic,
+        notesStatus: "Captured",
+      })
+    );
+  }
+
   try {
-    const raw = window.localStorage.getItem(CLAIMS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as unknown[]) : [];
+    window.localStorage.setItem(VISITS_STORAGE_KEY, JSON.stringify(allVisits));
+    window.localStorage.setItem(NOTES_KEY, JSON.stringify(buildNotesForStore()));
+    window.localStorage.setItem(CLAIMS_KEY, JSON.stringify(buildClaimsForStore()));
+    window.localStorage.setItem(SEEDED_KEY, "true");
+    return true;
   } catch {
-    return [];
+    return false;
   }
 }
 
 /**
- * If visits, claims, or notes are empty, seed 5 visits (this week), 3 claims, 4 notes.
- * Call from client only when NEXT_PUBLIC_DEMO_MODE is true.
- * Returns true if seeding was performed (caller may refresh state).
+ * Clear demo data and reseed flag; reload the page. Call only when DEMO_MODE.
  */
-export function seedDemoDataIfEmpty(): boolean {
-  if (typeof window === "undefined") return false;
-  const visits = loadVisits();
-  const notes = loadNotesRaw();
-  const claims = loadClaimsRaw();
-  const isEmpty = visits.length === 0 || notes.length === 0 || claims.length === 0;
-  if (!isEmpty) return false;
-
-  const today = toDateYmd(new Date());
-  const weekDates = getWeekDates(today);
-  const demoVisits = buildDemoVisits();
-  demoVisits.forEach((v) => upsertVisit(v));
-  const visitIds = demoVisits.map((v) => v.id);
-  const demoClaims = buildDemoClaims(visitIds, weekDates);
-  const demoNotes = buildDemoNotes(visitIds, weekDates);
+export function resetDemoData(): void {
+  if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(CLAIMS_KEY, JSON.stringify(demoClaims));
-    window.localStorage.setItem(NOTES_KEY, JSON.stringify(demoNotes));
+    window.localStorage.removeItem(VISITS_STORAGE_KEY);
+    window.localStorage.removeItem(NOTES_KEY);
+    window.localStorage.removeItem(CLAIMS_KEY);
+    window.localStorage.removeItem(SEEDED_KEY);
   } catch {
     // ignore
   }
-  return true;
+  window.location.reload();
 }

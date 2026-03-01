@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   type VisitSummary,
@@ -35,21 +35,28 @@ function confidenceLabel(level: ConfidenceLevel): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
-function createInitialVisit(): VisitSummary {
+function parseDateParam(value: string | null): string | undefined {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  return value;
+}
+
+function createInitialVisit(dateOverride?: string): VisitSummary {
   const base = MOCK_VISITS[0];
-  const now = new Date();
-  const ymd = now.toISOString().slice(0, 10);
+  const ymd = dateOverride ?? new Date().toISOString().slice(0, 10);
   return {
     ...base,
-    id: `new-${ymd.replace(/-/g, "")}`,
+    id: `new-${ymd.replace(/-/g, "")}-${Math.random().toString(36).slice(2, 8)}`,
     date: ymd,
     status: "draft",
   };
 }
 
-export default function NewVisitPage() {
+function NewVisitPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { addVisit } = useVisitsStore();
+
+  const dateFromUrl = parseDateParam(searchParams.get("date"));
 
   const [step, setStep] = useState<Step>("capture");
   const [captureState, setCaptureState] = useState<CaptureState>("idle");
@@ -62,14 +69,14 @@ export default function NewVisitPage() {
   useEffect(() => {
     if (!isProcessing) return;
     const timer = setTimeout(() => {
-      const nextVisit = createInitialVisit();
+      const nextVisit = createInitialVisit(dateFromUrl);
       setVisit(nextVisit);
       setProductsInput(nextVisit.products.join(", "));
       setStep("review");
       toast.success("Processing complete");
     }, 1500);
     return () => clearTimeout(timer);
-  }, [isProcessing]);
+  }, [isProcessing, dateFromUrl]);
 
   const currentStepIndex = useMemo(() => {
     const order: Step[] = ["capture", "processing", "review", "saved"];
@@ -154,6 +161,14 @@ export default function NewVisitPage() {
     toast.success("Saved");
     router.push("/dashboard");
   }, [addVisit, router, visit]);
+
+  const handleAddMeetingForDate = useCallback(() => {
+    if (!dateFromUrl) return;
+    const newVisit = createInitialVisit(dateFromUrl);
+    setVisit(newVisit);
+    setProductsInput(newVisit.products.join(", "));
+    setStep("review");
+  }, [dateFromUrl]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-lavender via-lavender/95 to-violet font-sans text-zinc-900">
@@ -271,6 +286,19 @@ export default function NewVisitPage() {
                         : "Saved"}
                 </span>
               </p>
+              {dateFromUrl && step === "capture" && (
+                <div className="border-t border-zinc-100 pt-3">
+                  <p className="mb-1.5 text-[11px] text-zinc-600">From calendar</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddMeetingForDate}
+                  >
+                    Add unscheduled meeting for {dateFromUrl}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -576,3 +604,10 @@ export default function NewVisitPage() {
   );
 }
 
+export default function NewVisitPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center text-zinc-500">New visit</div>}>
+      <NewVisitPageContent />
+    </Suspense>
+  );
+}
