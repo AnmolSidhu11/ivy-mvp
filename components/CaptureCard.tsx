@@ -7,9 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export type CaptureStatus = "idle" | "recording" | "processing" | "done";
 
-const MEDIARECORDER_SUPPORTED =
-  typeof window !== "undefined" && typeof window.MediaRecorder === "function";
-
 function getPreferredMimeType(): string {
   if (typeof window === "undefined") return "";
   const types = ["audio/webm", "audio/webm;codecs=opus", "audio/ogg", "audio/mp4"];
@@ -39,6 +36,20 @@ export function CaptureCard({
   const [recordedBlobUrl, setRecordedBlobUrl] = useState<string | null>(null);
   const [recordError, setRecordError] = useState<string | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [mediaSupported, setMediaSupported] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setMounted(true);
+      if (typeof window !== "undefined") {
+        setMediaSupported(typeof window.MediaRecorder === "function");
+      }
+    }, 0);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   const revokeRecordedUrl = useCallback((url: string | null) => {
     if (url) {
@@ -70,7 +81,7 @@ export function CaptureCard({
   }, [recordedBlobUrl, revokeRecordedUrl]);
 
   const startRecording = useCallback(async () => {
-    if (!MEDIARECORDER_SUPPORTED) {
+    if (!mediaSupported) {
       setRecordError("Recording not supported in this browser—use Upload audio.");
       toast.error("Recording not supported");
       return;
@@ -121,7 +132,7 @@ export function CaptureCard({
       toast.error("Microphone access denied");
       console.warn("getUserMedia error:", err);
     }
-  }, []);
+  }, [mediaSupported]);
 
   const stopRecording = useCallback(() => {
     if (timerRef.current) {
@@ -143,6 +154,28 @@ export function CaptureCard({
   const isProcessing = captureStatus === "processing";
   const isDisabled = isProcessing || isRecording;
 
+   if (!mounted) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Capture</CardTitle>
+          <CardDescription>
+            Start recording or upload an audio file. We&apos;ll turn it into a structured
+            visit summary.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <div className="h-8 w-24 rounded-md bg-zinc-100" />
+            <div className="h-8 w-28 rounded-md bg-zinc-100" />
+          </div>
+          <div className="h-10 w-full max-w-md rounded-md bg-zinc-100" />
+          <p className="text-xs text-zinc-400">Preparing capture tools…</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -153,7 +186,7 @@ export function CaptureCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {!MEDIARECORDER_SUPPORTED && (
+        {mounted && !mediaSupported && (
           <p className="rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800">
             Recording not supported in this browser—use Upload audio.
           </p>
@@ -170,7 +203,7 @@ export function CaptureCard({
             <Button
               size="sm"
               onClick={startRecording}
-              disabled={isDisabled || !MEDIARECORDER_SUPPORTED}
+              disabled={isDisabled || !mediaSupported}
             >
               Start Recording
             </Button>

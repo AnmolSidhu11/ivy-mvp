@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const INTERNAL_MODE = process.env.NEXT_PUBLIC_INTERNAL_MODE === "true";
 
 export const metadata: Metadata = {
   title: "IVY — Intelligent Visit Assistant",
@@ -27,9 +17,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${geistMono.variable} antialiased font-sans`}
-      >
+      <body className="antialiased font-sans">
+        {INTERNAL_MODE && (
+          <div className="w-full bg-amber-50 px-4 py-2 text-center text-xs font-medium text-amber-900 shadow-sm">
+            Internal use only. No patient/PII.
+          </div>
+        )}
         <Providers>{children}</Providers>
       </body>
     </html>

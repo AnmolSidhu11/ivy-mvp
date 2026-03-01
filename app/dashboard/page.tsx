@@ -29,6 +29,8 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useVisitsStore } from "@/lib/store";
 import { CaptureCard, type CaptureStatus } from "@/components/CaptureCard";
+import { DashboardNav } from "@/components/DashboardNav";
+import { DashboardTodayAgenda } from "@/components/DashboardTodayAgenda";
 
 function confidenceVariant(level: ConfidenceLevel): "success" | "warning" | "destructive" {
   if (level === "high") return "success";
@@ -108,48 +110,12 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-lavender via-lavender/95 to-violet font-sans text-zinc-900">
       <div className="mx-auto flex max-w-6xl gap-8 px-6 py-10 lg:px-8 lg:py-12">
-        {/* Sidebar */}
-        <aside className="hidden w-56 shrink-0 flex-col gap-2 rounded-2xl bg-white/95 p-4 shadow-sm backdrop-blur-sm md:flex">
-          <div className="mb-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">
-            Navigation
-          </div>
-          <nav className="space-y-1.5 text-sm">
-            <Link
-              href="/dashboard"
-              className="flex items-center justify-between rounded-xl bg-violet/10 px-3 py-2.5 text-xs font-medium text-violet hover:bg-violet/15 transition-colors"
-            >
-              <span>Dashboard</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-violet" />
-            </Link>
-            <Link
-              href="/new-visit"
-              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-medium text-zinc-600 hover:bg-lavender/50 hover:text-violet transition-colors"
-            >
-              New Visit
-            </Link>
-            <Link
-              href="/expense"
-              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-medium text-zinc-600 hover:bg-lavender/50 hover:text-violet transition-colors"
-            >
-              Expense
-            </Link>
-            <button
-              type="button"
-              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-medium text-zinc-600 hover:bg-lavender/50 hover:text-violet transition-colors"
-            >
-              History
-            </button>
-            <button
-              type="button"
-              className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-medium text-zinc-600 hover:bg-lavender/50 hover:text-violet transition-colors"
-            >
-              Settings
-            </button>
-          </nav>
-        </aside>
+        <DashboardNav />
 
         {/* Main content */}
         <main className="flex-1 space-y-6">
+          <DashboardTodayAgenda visits={visits} />
+
           <header className="flex items-center justify-between gap-4 border-b border-white/40 pb-6">
             <div className="space-y-0.5">
               <h1 className="text-2xl font-semibold tracking-tight text-violet">IVY</h1>

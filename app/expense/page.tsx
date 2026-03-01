@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useVisitsStore } from "@/lib/store";
 
 type ExpenseType = "Meal" | "Taxi/Rideshare" | "Parking" | "Hotel" | "Other";
 type Currency = "CAD" | "USD" | "EUR" | "GBP";
@@ -109,18 +111,42 @@ function CheckRow({
 
 export default function VisitExpenseSubmitPage() {
   const receiptInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams();
 
-  const [visitId, setVisitId] = useState("VIS-2026-0218-0042");
-  const [hcpName, setHcpName] = useState("Dr. Patel");
+  const [visitId, setVisitId] = useState("");
+  const [hcpName, setHcpName] = useState("");
   const [location, setLocation] = useState("Toronto, ON");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState("");
   const [category, setCategory] = useState<ExpenseType>("Meal");
   const [currency, setCurrency] = useState<Currency>("CAD");
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
-  const [attendees, setAttendees] = useState([{ name: "Dr. Patel", role: "HCP" }]);
+  const [attendees, setAttendees] = useState([{ name: "", role: "" }]);
   const [notes, setNotes] = useState("");
   const [receipt, setReceipt] = useState<File | null>(null);
+  const { visits } = useVisitsStore();
+
+  useEffect(() => {
+    const qVisitId = searchParams.get("visitId") ?? "";
+    const qDate = searchParams.get("date") ?? "";
+    if (qVisitId) setVisitId(qVisitId);
+    if (qDate && /^\d{4}-\d{2}-\d{2}$/.test(qDate)) {
+      setDate(qDate);
+    } else {
+      const today = new Date();
+      const ymd =
+        String(today.getFullYear()) +
+        "-" +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        "-" +
+        String(today.getDate()).padStart(2, "0");
+      setDate(ymd);
+    }
+    if (qVisitId && visits.length > 0) {
+      const v = visits.find((x) => x.id === qVisitId);
+      if (v) setHcpName(v.hcpName);
+    }
+  }, [searchParams, visits]);
 
   const [confirmBusinessPurpose, setConfirmBusinessPurpose] = useState(false);
   const [confirmNoAlcohol, setConfirmNoAlcohol] = useState(true);

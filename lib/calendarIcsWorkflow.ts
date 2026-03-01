@@ -1,10 +1,9 @@
 /**
- * Shared ICS workflow: build events and filenames for Add to calendar (Visit Detail / Claim Detail).
- * All times are in local time (10:00 and 17:00) so ICS floating local DTSTART/DTEND display correctly.
- * Safe fallbacks for missing HCP/location.
+ * ICS workflow: build events and filenames for Add to calendar (Concierge Calendar / Visit).
+ * All times in local time. Safe fallbacks for missing HCP/location.
  */
-import { nextBusinessDayAt10Local, addMinutes, sameDayAt17Local } from "./lib/calendarHelpers";
-import type { IcsEventInput } from "./lib/calendarIcs";
+import { nextBusinessDayAt10Local, addMinutes, sameDayAt17Local } from "./calendarHelpers";
+import type { IcsEventInput } from "./calendarIcs";
 
 export type IcsWorkflowOption = "full" | "precall" | "visit" | "postcall" | "expense";
 
@@ -44,7 +43,7 @@ function buildDescription(params: IcsWorkflowParams, workflowPart: string): stri
 
 /**
  * Returns events and filename for the chosen option.
- * entityIdForFilename: e.g. "VIS-001" or "EXP-001" for concierge_workflow_VIS-001.ics
+ * entityIdForFilename: e.g. "v1" or "VIS-001" for concierge_workflow_v1.ics
  */
 export function buildIcsWorkflow(
   params: IcsWorkflowParams,

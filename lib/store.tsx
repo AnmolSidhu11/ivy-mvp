@@ -4,6 +4,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { CallDraft } from "./types";
 import { getEventById } from "./mock";
 import { MOCK_VISITS, type VisitSummary } from "./mockVisits";
+import { INTERNAL_MODE } from "./env";
+import type { NotesRepo } from "./notesRepo";
+import { LocalNotesRepo } from "./localNotesRepo";
+import { listVisits, upsertVisit } from "./visitsRepo";
 
 const STORAGE_KEY = "drafts";
 
@@ -27,7 +31,7 @@ interface DraftsContextValue {
 const DraftsContext = createContext<DraftsContextValue | undefined>(undefined);
 
 function loadInitialDrafts(): DraftsRecord {
-  if (typeof window === "undefined") return {};
+  if (typeof window === "undefined" || INTERNAL_MODE) return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
@@ -39,7 +43,7 @@ function loadInitialDrafts(): DraftsRecord {
 }
 
 function persistDrafts(drafts: DraftsRecord) {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || INTERNAL_MODE) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
   } catch {
@@ -119,7 +123,7 @@ export function useDraftsStore(): DraftsContextValue & {
   return { ...ctx, getDraft };
 }
 
-// --- Visits store for IVY history / new visit workflow ---
+// --- Visits store: backed by visitsRepo (same source as New Visit & Calendar) ---
 
 interface VisitsContextValue {
   visits: VisitSummary[];
@@ -129,13 +133,23 @@ interface VisitsContextValue {
 const VisitsContext = createContext<VisitsContextValue | undefined>(undefined);
 
 export function VisitsProvider({ children }: { children: React.ReactNode }) {
-  const [visits, setVisits] = useState<VisitSummary[]>(() => MOCK_VISITS);
+  const [visits, setVisits] = useState<VisitSummary[]>([]);
+
+  useEffect(() => {
+    let list = listVisits();
+    if (list.length === 0 && typeof window !== "undefined") {
+      MOCK_VISITS.forEach((v) => upsertVisit(v));
+      list = listVisits();
+    }
+    setVisits(list);
+  }, []);
 
   const value = useMemo<VisitsContextValue>(
     () => ({
       visits,
       addVisit(visit) {
-        setVisits((prev) => [visit, ...prev]);
+        upsertVisit(visit);
+        setVisits(listVisits());
       },
     }),
     [visits],
@@ -148,6 +162,25 @@ export function useVisitsStore(): VisitsContextValue {
   const ctx = useContext(VisitsContext);
   if (!ctx) {
     throw new Error("useVisitsStore must be used within VisitsProvider");
+  }
+  return ctx;
+}
+
+// --- Notes repo for Concierge Calendar ---
+
+const NotesRepoContext = createContext<NotesRepo | undefined>(undefined);
+
+export function NotesRepoProvider({ children }: { children: React.ReactNode }) {
+  const repo = useMemo(() => LocalNotesRepo, []);
+  return (
+    <NotesRepoContext.Provider value={repo}>{children}</NotesRepoContext.Provider>
+  );
+}
+
+export function useNotesRepo(): NotesRepo {
+  const ctx = useContext(NotesRepoContext);
+  if (!ctx) {
+    throw new Error("useNotesRepo must be used within NotesRepoProvider");
   }
   return ctx;
 }
