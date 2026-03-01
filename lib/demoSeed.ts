@@ -29,8 +29,8 @@ const REQUIRED_FIELD_LABELS = [
 ];
 
 function isDemoMode(): boolean {
-  // Always true for presentation safety; revert to env check when needed.
-  return true;
+  if (typeof process === "undefined") return true;
+  return process.env.NEXT_PUBLIC_DEMO_MODE !== "false";
 }
 
 function toDateYmd(d: Date): string {
@@ -97,7 +97,6 @@ function buildClaimsForStore(): { id: string; visitId?: string; status: string; 
  * @returns true if data was written, false if skipped (already seeded or not demo mode)
  */
 export function ensureDemoSeed(): boolean {
-  console.log("[demoSeed] called");
   if (typeof window === "undefined") return false;
   if (!isDemoMode()) return false;
   if (window.localStorage.getItem(SEEDED_KEY) === "true") return false;
@@ -130,7 +129,6 @@ export function ensureDemoSeed(): boolean {
     window.localStorage.setItem(NOTES_KEY, JSON.stringify(buildNotesForStore()));
     window.localStorage.setItem(CLAIMS_KEY, JSON.stringify(buildClaimsForStore()));
     window.localStorage.setItem(SEEDED_KEY, "true");
-    console.log("[demoSeed] wrote visits:", allVisits.length);
     return true;
   } catch {
     return false;

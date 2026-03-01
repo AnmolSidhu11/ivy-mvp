@@ -32,7 +32,10 @@ import type {
 } from "@/lib/concierge/types";
 import { QuickNoteModal } from "@/components/QuickNoteModal";
 import { AddToCalendarDropdown } from "@/components/AddToCalendarDropdown";
+<<<<<<< HEAD
 import { ConciergePanel } from "@/components/ConciergePanel";
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 import { DEMO_MODE } from "@/lib/env";
 
 type ViewMode = "month" | "agenda" | "day" | "week";
@@ -540,8 +543,13 @@ export function ConciergeCalendar({ initialDate }: Props) {
               className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-xs text-zinc-800 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
             />
             <div className="flex rounded-full border border-zinc-200 bg-white p-0.5">
+<<<<<<< HEAD
               {(["month", "agenda", "day", "week"] as const).map((mode) => {
                 const disabled = DEMO_MODE && mode !== "month";
+=======
+              {(["agenda", "day", "week"] as const).map((mode) => {
+                const disabled = DEMO_MODE && mode !== "agenda";
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
                 return (
                   <button
                     key={mode}

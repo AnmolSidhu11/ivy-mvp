@@ -39,7 +39,11 @@ const FAQ_ENTRIES: FaqEntry[] = [
     category: "reimbursement_pa",
     keywords: ["reimbursement", "prior auth", "prior authorization", "pa form", "coverage", "payer", "formulary"],
     answer:
+<<<<<<< HEAD
       "Reimbursement and prior authorization workflows vary by payer. Direct HCPs to the manufacturer’s reimbursement hub or patient support program for case-specific help. Do not guarantee coverage.",
+=======
+      "Reimbursement and prior authorization workflows vary by payer. Direct HCPs to the manufacturer's reimbursement hub or patient support program for case-specific help. Do not guarantee coverage.",
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
   },
   {
     category: "compliance",

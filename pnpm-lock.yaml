@@ -51,9 +51,12 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
+<<<<<<< HEAD
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
       eslint:
         specifier: ^9
         version: 9.39.3(jiti@2.6.1)
@@ -203,8 +206,13 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
+<<<<<<< HEAD
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
+=======
+  '@img/colour@1.0.0':
+    resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
     engines: {node: '>=18'}
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -1013,8 +1021,13 @@ packages:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
 
+<<<<<<< HEAD
   caniuse-lite@1.0.30001775:
     resolution: {integrity: sha512-s3Qv7Lht9zbVKE9XoTyRG6wVDCKdtOFIjBGg3+Yhn6JaytuNKPIjBMTMIY1AnOH3seL5mvF+x33oGAyK3hVt3A==}
+=======
+  caniuse-lite@1.0.30001774:
+    resolution: {integrity: sha512-DDdwPGz99nmIEv216hKSgLD+D4ikHQHjBC/seF98N9CPqRX4M5mSxT9eTV6oyisnJcuzxtZy4n17yKKQYmYQOA==}
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
@@ -1043,11 +1056,14 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
+<<<<<<< HEAD
   cross-env@7.0.3:
     resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
     engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
     hasBin: true
 
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -2339,7 +2355,11 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
+<<<<<<< HEAD
   '@img/colour@1.1.0':
+=======
+  '@img/colour@1.0.0':
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
     optional: true
 
   '@img/sharp-darwin-arm64@0.34.5':
@@ -3006,7 +3026,11 @@ snapshots:
   browserslist@4.28.1:
     dependencies:
       baseline-browser-mapping: 2.10.0
+<<<<<<< HEAD
       caniuse-lite: 1.0.30001775
+=======
+      caniuse-lite: 1.0.30001774
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
       electron-to-chromium: 1.5.302
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
@@ -3030,7 +3054,11 @@ snapshots:
 
   callsites@3.1.0: {}
 
+<<<<<<< HEAD
   caniuse-lite@1.0.30001775: {}
+=======
+  caniuse-lite@1.0.30001774: {}
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
 
   chalk@4.1.2:
     dependencies:
@@ -3055,10 +3083,13 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
+<<<<<<< HEAD
   cross-env@7.0.3:
     dependencies:
       cross-spawn: 7.0.6
 
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -3865,7 +3896,11 @@ snapshots:
       '@next/env': 16.1.6
       '@swc/helpers': 0.5.15
       baseline-browser-mapping: 2.10.0
+<<<<<<< HEAD
       caniuse-lite: 1.0.30001775
+=======
+      caniuse-lite: 1.0.30001774
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
       postcss: 8.4.31
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
@@ -4103,7 +4138,11 @@ snapshots:
 
   sharp@0.34.5:
     dependencies:
+<<<<<<< HEAD
       '@img/colour': 1.1.0
+=======
+      '@img/colour': 1.0.0
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
       detect-libc: 2.1.2
       semver: 7.7.4
     optionalDependencies:

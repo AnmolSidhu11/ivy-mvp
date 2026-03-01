@@ -18,7 +18,10 @@ export type RepNote = Note;
 
 export interface NotesRepo {
   listByDate(dateYmd: string): Promise<Note[]>;
+<<<<<<< HEAD
   /** Client-only: returns all notes (for month view badge counts). */
+=======
+>>>>>>> 168917255ea1837df883270dc4a694700018bf4b
   listAll?(): Promise<Note[]>;
   get(noteId: string): Promise<Note | null>;
   create(note: Omit<Note, "id" | "createdAtIso" | "updatedAtIso">): Promise<Note>;
